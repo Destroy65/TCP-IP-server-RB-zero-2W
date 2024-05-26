@@ -2,17 +2,21 @@ from tkinter import *
 from tkinter import ttk
 import re
 
-arpFile = "arp.txt"
-#arpFile = "/proc/net/arp"
+#arpFile = "arp.txt"
+arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 
 
 def updateDevices(devices):
     devIP = dict()
     f = open(arpFile, "r")
+    f.readline()
     for line in f:
+        print(line)
         ip = re.search("(\\b25[0-5]|\\b2[0-4][0-9]|\\b[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}", line)
         mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
+        print(ip)
+        print(mac)
         devIP[mac[0]] = ip[0]
     f.close()
 
