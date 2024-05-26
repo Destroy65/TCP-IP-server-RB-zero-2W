@@ -3,6 +3,7 @@ from tkinter import ttk
 import re
 
 arpFile = "arp.txt"
+#arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 
 
