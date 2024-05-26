@@ -23,7 +23,7 @@ def updateDevices(devices):
     for line in f:
         mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
         if devIP.get(mac[0]):
-            name = re.findall("\t(.+)$", line)
+            name = re.search("\t(.+)$", line)
             devices[devIP[mac[0]]] = name[0]
     f.close()
     print(devices)
