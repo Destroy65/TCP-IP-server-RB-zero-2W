@@ -1,1 +1,2 @@
 36:dd:7e:e4:9e:1a	phone1
+36:dd:7e:e4:9e:6a	phone2
