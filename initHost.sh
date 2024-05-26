@@ -2,7 +2,7 @@
 
 sudo systemctl start NetworkManager
 
-wait 2000
+wait
 
 sudo nmcli device wifi hotspot ssid "raspWIFI" password "raspwifi"
 
