@@ -5,9 +5,14 @@ import re
 #arpFile = "arp.txt"
 arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
+debug = True
+
+devices = dict()
+mutes = dict()
+defeans = dict()
 
 
-def updateDevices(devices):
+def updateDevices(frm):
     devIP = dict()
     f = open(arpFile, "r")
     f.readline()
@@ -17,7 +22,7 @@ def updateDevices(devices):
         devIP[mac[0]] = ip[0]
     f.close()
 
-    print(devIP)
+    if(debug): print(devIP)
 
     f = open(devNameFile, "r")
     for line in f:
@@ -26,7 +31,7 @@ def updateDevices(devices):
             name = re.search("\t(.+)$", line)
             devices[devIP[mac[0]]] = name[0]
     f.close()
-    print(devices)
+    if(debug): print(devices)
 
     for mac in devIP:
         if not devices.get(devIP[mac]):
@@ -34,24 +39,7 @@ def updateDevices(devices):
     devIP.clear()
 
     print(devices)
-    
 
-
-
-def main():
-    devices = dict()
-    mutes = dict()
-    defeans = dict()
-    root = Tk()
-    root.title("Comunication Control")
-    root.minsize(400,200)
-    frm = ttk.Frame(root, padding=20)
-    frm.grid(column=0,row=0, columnspan=3,rowspan=5)
-    updateDevices(devices)
-    
-    ttk.Label(frm, text="Broadcast Channel").grid(column=0, row=0, columnspan=3)
-    ttk.Label(frm, text="Mute").grid(column=1, row=1)
-    ttk.Label(frm, text="Defean").grid(column=2, row=1)
     count = 2
     for dev in devices:
         mutes[dev] = IntVar()
@@ -60,18 +48,39 @@ def main():
         ttk.Checkbutton(frm, variable=mutes[dev]).grid(column=1, row=count)
         ttk.Checkbutton(frm, variable=defeans[dev]).grid(column=2, row=count)
         count += 1
+    
+def aux():
+    print("gaggaa")
+
+
+def main():
+    
+    root = Tk()
+    root.title("Comunication Control")
+    root.minsize(400,200)
+    frm = ttk.Frame(root, padding=20)
+    frm.grid(column=0,row=0, columnspan=3,rowspan=5)
+    
+    
+    ttk.Label(frm, text="Broadcast Channel").grid(column=0, row=0, columnspan=3)
+    ttk.Label(frm, text="Mute").grid(column=1, row=1)
+    ttk.Label(frm, text="Defean").grid(column=2, row=1)
+    updateDevices(frm)
+    
     frm2 = ttk.Frame(root, padding=20)
     frm2.grid(column=3,row=0, columnspan=2, rowspan=4)
     private_d1_mute = IntVar()
     private_d2_mute = IntVar()
     ttk.Label(frm2, text="Private Channel 1").grid(column=6,row=0, columnspan=2)
-    ttk.Label(frm2, text="Mute").grid(column=7, row=1)
+    ttk.Button(frm2, text="Add Device", command=aux).grid(column=6,row=1, columnspan=2)
+    ttk.Label(frm2, text="Mute").grid(column=8, row=1)
     ttk.Label(frm2, text="Device 1").grid(column=6, row=2)
-    ttk.Checkbutton(frm2, variable=private_d1_mute).grid(column=7, row=2)
+    ttk.Checkbutton(frm2, variable=private_d1_mute).grid(column=8, row=2)
     ttk.Label(frm2, text="Device 2").grid(column=6, row=3)
-    ttk.Checkbutton(frm2, variable=private_d2_mute).grid(column=7, row=3)
+    ttk.Checkbutton(frm2, variable=private_d2_mute).grid(column=8, row=3)
     frm3 = ttk.Frame(root, padding=10)
-    frm3.grid(column=6,row=5, columnspan=2)
+    frm3.grid(column=0,row=5, columnspan=2)
+    ttk.Button(frm3, text="Refresh", command=updateDevices(frm)).grid(column=0, row=5, columnspan=2)
     ttk.Button(frm3, text="Quit", command=root.destroy).grid(column=6, row=5, columnspan=2)
     root.mainloop()
 
