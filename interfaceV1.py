@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 import re
 
-#arpFile = "arp.txt"
-arpFile = "/proc/net/arp"
+arpFile = "arp.txt"
+#arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 debug = True
 
@@ -49,8 +49,8 @@ def updateDevices(frm):
         ttk.Checkbutton(frm, variable=defeans[dev]).grid(column=2, row=count)
         count += 1
     
-def aux():
-    print("gaggaa")
+def addDevice():
+    print("Adding Devices")
 
 
 def main():
@@ -69,18 +69,15 @@ def main():
     
     frm2 = ttk.Frame(root, padding=20)
     frm2.grid(column=3,row=0, columnspan=2, rowspan=4)
-    private_d1_mute = IntVar()
-    private_d2_mute = IntVar()
     ttk.Label(frm2, text="Private Channel 1").grid(column=6,row=0, columnspan=2)
-    ttk.Button(frm2, text="Add Device", command=aux).grid(column=6,row=1, columnspan=2)
+    ttk.Button(frm2, text="Add Device", command=lambda:addDevice()).grid(column=6,row=1, columnspan=2)
     ttk.Label(frm2, text="Mute").grid(column=8, row=1)
-    ttk.Label(frm2, text="Device 1").grid(column=6, row=2)
-    ttk.Checkbutton(frm2, variable=private_d1_mute).grid(column=8, row=2)
-    ttk.Label(frm2, text="Device 2").grid(column=6, row=3)
-    ttk.Checkbutton(frm2, variable=private_d2_mute).grid(column=8, row=3)
+    #private_d1_mute = IntVar()
+    #ttk.Label(frm2, text="Device 1").grid(column=6, row=2)
+    #ttk.Checkbutton(frm2, variable=private_d1_mute).grid(column=8, row=2)
     frm3 = ttk.Frame(root, padding=10)
     frm3.grid(column=0,row=5, columnspan=2)
-    ttk.Button(frm3, text="Refresh", command=updateDevices(frm)).grid(column=0, row=5, columnspan=2)
+    ttk.Button(frm3, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=5, columnspan=2)
     ttk.Button(frm3, text="Quit", command=root.destroy).grid(column=6, row=5, columnspan=2)
     root.mainloop()
 
