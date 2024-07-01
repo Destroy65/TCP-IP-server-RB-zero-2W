@@ -1,6 +1,8 @@
 from tkinter import *
-from tkinter import ttk
+from tkinter.ttk import *
 import re
+import os
+import time
 
 arpFile = "arp.txt"
 #arpFile = "/proc/net/arp"
@@ -11,6 +13,11 @@ devices = dict()
 mutes = dict()
 defeans = dict()
 
+def setupNetwork():
+    os.system("sudo systemctl start NetworkManager")
+    time.sleep(5)
+    os.system("sudo nmcli device wifi hotspot ssid 'raspWIFI' password 'raspwifi'")
+    
 
 def updateDevices(frm):
     devIP = dict()
@@ -44,42 +51,75 @@ def updateDevices(frm):
     for dev in devices:
         mutes[dev] = IntVar()
         defeans[dev] = IntVar()
-        ttk.Label(frm, text=devices[dev]).grid(column=0, row=count)
-        ttk.Checkbutton(frm, variable=mutes[dev]).grid(column=1, row=count)
-        ttk.Checkbutton(frm, variable=defeans[dev]).grid(column=2, row=count)
+        Label(frm, text=devices[dev]).grid(column=0, row=count, columnspan=2)
+        Checkbutton(frm, variable=mutes[dev]).grid(column=2, row=count)
+        Checkbutton(frm, variable=defeans[dev]).grid(column=3, row=count)
         count += 1
     
-def addDevice():
-    print("Adding Devices")
+    return count
 
+def bradcastWindow(tab1, root):
+    frm = Frame(tab1, padding=20)
+    frm.grid(column=0,row=0)
+    
+    Label(frm, text="Mute").grid(column=2, row=1)
+    Label(frm, text="Defean").grid(column=3, row=1)
+    lastRow = updateDevices(frm)
+
+    Button(frm, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=lastRow+1, columnspan=2)
+    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=lastRow+1, columnspan=2)
+
+def privateWindow(tab2, root):
+    frm = Frame(tab2, padding=20)
+    frm.grid(column=0,row=0)
+    
+    Label(frm, text="Mute").grid(column=2, row=1)
+    Label(frm, text="Walkie-1").grid(column=3, row=1)
+    Label(frm, text="Walkie-2").grid(column=4, row=1)
+    Label(frm, text="Walkie-3").grid(column=5, row=1)
+
+    Label(frm, text="Walkie-1").grid(column=0, row=2)
+    Checkbutton(frm, variable=IntVar()).grid(column=2, row=2)
+    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=3, row=2)
+    Checkbutton(frm, variable=IntVar()).grid(column=4, row=2)
+    Checkbutton(frm, variable=IntVar()).grid(column=5, row=2)
+
+    Label(frm, text="Walkie-2").grid(column=0, row=3)
+    Checkbutton(frm, variable=IntVar()).grid(column=2, row=3)
+    Checkbutton(frm, variable=IntVar()).grid(column=3, row=3)
+    Checkbutton(frm, variable=0,state="disabled").grid(column=4, row=3)
+    Checkbutton(frm, variable=IntVar()).grid(column=5, row=3)
+
+    Label(frm, text="Walkie-3").grid(column=0, row=4)
+    Checkbutton(frm, variable=IntVar()).grid(column=2, row=4)
+    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=3, row=4)
+    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=4, row=4)
+    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=5, row=4)
+
+    
+
+    Button(frm, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=6, columnspan=2)
+    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=6, columnspan=2)
 
 def main():
-    
+    setupNetwork()
     root = Tk()
     root.title("Comunication Control")
     root.minsize(400,200)
-    frm = ttk.Frame(root, padding=20)
-    frm.grid(column=0,row=0, columnspan=3,rowspan=5)
     
     
-    ttk.Label(frm, text="Broadcast Channel").grid(column=0, row=0, columnspan=3)
-    ttk.Label(frm, text="Mute").grid(column=1, row=1)
-    ttk.Label(frm, text="Defean").grid(column=2, row=1)
-    updateDevices(frm)
+    tab_control = Notebook(root)
+
+    tab1 = Frame(tab_control)
+    tab2 = Frame(tab_control)
+
+    tab_control.add(tab1, text='Broadcast Channel')
+    tab_control.add(tab2, text='1 to 1')
+
+    bradcastWindow(tab1, root)
+    privateWindow(tab2, root)
     
-    frm2 = ttk.Frame(root, padding=20)
-    frm2.grid(column=3,row=0, columnspan=2, rowspan=4)
-    ttk.Label(frm2, text="Private Channel 1").grid(column=6,row=0, columnspan=2)
-    ttk.Button(frm2, text="Add Device", command=lambda:addDevice()).grid(column=6,row=1, columnspan=2)
-    ttk.Label(frm2, text="Mute").grid(column=8, row=1)
-    private_d1_mute = IntVar()
-    ttk.Label(frm2, text="Device 1").grid(column=6, row=2)
-    ttk.Checkbutton(frm2, variable=private_d1_mute).grid(column=8, row=2)
-    ttk.Button(frm2, text="Kick").grid(column=9, row=2)
-    frm3 = ttk.Frame(root, padding=10)
-    frm3.grid(column=0,row=5, columnspan=2)
-    ttk.Button(frm3, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=5, columnspan=2)
-    ttk.Button(frm3, text="Quit", command=root.destroy).grid(column=6, row=5, columnspan=2)
+    tab_control.pack(expand=1, fill='both')
     root.mainloop()
 
 main()
