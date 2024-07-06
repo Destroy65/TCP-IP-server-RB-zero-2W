@@ -17,19 +17,21 @@ class ServerManager:
         self.__walkie1 = "10.42.0.132"
     
     def run(self):
-        try:
-            (sock, address) = self.__listen.accept()
-            cm = ConnectionManager(sock, address)
+        while True:
+            try:
+                (sock, address) = self.__listen.accept()
+                cm = ConnectionManager(sock, address)
+                
+                thread = Thread(target=cm.run, args=())
+                thread.run()
+                self.__walkies[address] = cm.get_queues()
+            except:
+                pass
             
-            thread = Thread(target=cm.run, args=())
-            self.__walkies[address] = cm.get_queues()
-        except:
-            pass
-        
-        
-        if self.__walkie1 in self.__walkies and self.__walkie2 in self.__walkies:
-            self.__walkies[self.__walkie1][1].append(self.__walkies[self.__walkie2][0].pop(0))
-            self.__walkies[self.__walkie2][1].append(self.__walkies[self.__walkie1][0].pop(0))
+            
+            if self.__walkie1 in self.__walkies and self.__walkie2 in self.__walkies:
+                self.__walkies[self.__walkie1][1].append(self.__walkies[self.__walkie2][0].pop(0))
+                self.__walkies[self.__walkie2][1].append(self.__walkies[self.__walkie1][0].pop(0))
     
 
 class ConnectionManager:
