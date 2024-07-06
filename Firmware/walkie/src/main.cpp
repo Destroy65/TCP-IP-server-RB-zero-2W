@@ -1,11 +1,12 @@
 #include <WiFi.h>
 
+#define BUFF_SIZE 100
 // WiFi credentials
 const char* ssid = "raspWIFI";        
 const char* password = "raspwifi"; 
 
 // Server details
-const char* host = "10.42.0.229";   
+const char* host = "10.42.0.1";   
 const uint16_t sPort = 6420;            
 const uint16_t rPort = 6421;
 WiFiClient sender;
@@ -24,12 +25,12 @@ void setup() {
   // Serial.print("Connecting to ");
   // Serial.println(ssid);
 
-  // WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password);
 
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(500);
-  //   Serial.print(".");
-  // }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
   
   // Serial.println("");
   // Serial.println("WiFi connected");
@@ -40,18 +41,20 @@ void setup() {
   // Serial.println("10.42.0.1:6420");
   // Serial.println("Connection to port 6421 accepted from:");
   // Serial.println("10.42.0.1");
-  // while (!sender.connect(host, sPort)) {
-  //   delay(1000);
-  // }
+  receiver.begin();
+  delay(10);
+  
+  while (!sender.connect(host, sPort)) {
+    delay(1000);
+  }
 
-  // receiver.begin();
-  // delay(10);
+  
 
   // Create the ADC task
   xTaskCreatePinnedToCore(
     sendTask,          // Task function
     "sendTask",        // Name of the task (for debugging)
-    4096,             // Stack size (bytes)
+    8192,             // Stack size (bytes)
     NULL,             // Task input parameter
     1,                // Priority of the task
     NULL,              // Task handle
@@ -59,15 +62,15 @@ void setup() {
   );
 
   // Create the WiFi task
-  // xTaskCreatePinnedToCore(
-  //   receiveTask,         // Task function
-  //   "receiveTask",       // Name of the task (for debugging)
-  //   4096,             // Stack size (bytes)
-  //   NULL,             // Task input parameter
-  //   1,                // Priority of the task
-  //   NULL,             // Task handle
-  //   1
-  // );
+  xTaskCreatePinnedToCore(
+    receiveTask,         // Task function
+    "receiveTask",       // Name of the task (for debugging)
+    8192,             // Stack size (bytes)
+    NULL,             // Task input parameter
+    1,                // Priority of the task
+    NULL,             // Task handle
+    1
+  );
 }
 
 void loop() {
@@ -76,14 +79,19 @@ void loop() {
 
 void sendTask(void *pvParameters) {
   int16_t adcValue = 0;
+  uint8_t buff[BUFF_SIZE];
   while (true) {
     // Read ADC value
-    adcValue = analogRead(adcPin);
-    // if(sender.connected()){
-    //   sender.write((adcValue>>6)&0xFF);
-    // }
-    dacWrite(25, (adcValue>>6)&0xFF);
-    delayMicroseconds(125);
+    for(int i = 0; i < BUFF_SIZE; i++){
+      adcValue = analogRead(adcPin);
+      buff[i] = (adcValue>>4)&0xFF;
+      delayMicroseconds(125);
+    }
+    if(sender.connected()){
+      sender.write(buff, BUFF_SIZE);
+    }
+    //dacWrite(25, (adcValue>>6)&0xFF);
+    
   }
 }
 
@@ -92,11 +100,14 @@ void receiveTask(void *pvParameters) {
   {
     WiFiClient client = receiver.available();
     if (client){
-      uint8_t buffer;
+      uint8_t buffer[BUFF_SIZE];
       while (client.connected()) {
         if(client.available()){
-          client.readBytes(&buffer, sizeof(uint8_t));
-          dacWrite(dacPin, buffer);
+          client.readBytes(buffer, BUFF_SIZE); 
+        }
+        for (int i = 0; i < BUFF_SIZE; i++){
+          dacWrite(dacPin, buffer[i]);
+          delayMicroseconds(125);
         }
       }
       client.stop();

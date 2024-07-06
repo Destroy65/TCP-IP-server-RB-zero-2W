@@ -3,6 +3,7 @@ from tkinter.ttk import *
 import re
 import os
 import time
+import socket
 
 arpFile = "arp.txt"
 #arpFile = "/proc/net/arp"
@@ -105,7 +106,7 @@ def main():
     setupNetwork()
     root = Tk()
     root.title("Comunication Control")
-    root.minsize(400,200)
+    root.minsize(600,500)
     
     
     tab_control = Notebook(root)
