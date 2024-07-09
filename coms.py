@@ -1,8 +1,9 @@
 import socket
 import threading
 
-# Dictionary to store client connections
-clients = {}
+HOST = '0.0.0.0'  # Listen on all available interfaces
+PORT = 6420
+clients = {}      # Dictionary to store client connections
 
 def handle_client(client_socket, client_address):
     while True:
@@ -42,7 +43,4 @@ def start_server(host, port):
         client_handler.start()
 
 if __name__ == "__main__":
-    HOST = '0.0.0.0'  # Listen on all available interfaces
-    PORT = 6420
-
     start_server(HOST, PORT)

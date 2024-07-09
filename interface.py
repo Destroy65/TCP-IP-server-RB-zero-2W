@@ -3,7 +3,9 @@ from tkinter.ttk import *
 import re
 import os
 import time
-import socket
+import threading
+import coms
+
 
 #arpFile = "arp.txt"
 arpFile = "/proc/net/arp"
@@ -16,7 +18,7 @@ defeans = dict()
 
 def setupNetwork():
     os.system("sudo systemctl start NetworkManager")
-    time.sleep(5)
+    time.sleep(3)
     os.system("sudo nmcli device wifi hotspot ssid 'raspWIFI' password 'raspwifi'")
     
 
@@ -102,15 +104,15 @@ def privateWindow(tab2, root):
     Button(frm, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=6, columnspan=2)
     Button(frm, text="Quit", command=root.destroy).grid(column=6, row=6, columnspan=2)
 
-def main():
+if __name__ == "__main__":
     setupNetwork()
+    server_handler = threading.Thread(target=coms.handle_client, args=(coms.HOST, coms.PORT))
+
     root = Tk()
     root.title("Comunication Control")
     root.minsize(600,500)
     
-    
     tab_control = Notebook(root)
-
     tab1 = Frame(tab_control)
     tab2 = Frame(tab_control)
 
@@ -121,6 +123,8 @@ def main():
     privateWindow(tab2, root)
     
     tab_control.pack(expand=1, fill='both')
+
+    server_handler.start()
     root.mainloop()
 
-main()
+
