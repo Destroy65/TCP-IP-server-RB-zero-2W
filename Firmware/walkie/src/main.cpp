@@ -6,7 +6,7 @@ const char* ssid = "raspWIFI";
 const char* password = "raspwifi"; 
 
 // Server details
-const char* host = "10.42.0.229";   
+const char* host = "10.42.0.1";   
 const uint16_t sPort = 6420;            
 const uint16_t rPort = 6421;
 WiFiClient sock;
