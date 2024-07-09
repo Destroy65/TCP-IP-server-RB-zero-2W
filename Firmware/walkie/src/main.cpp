@@ -6,11 +6,11 @@ const char* ssid = "raspWIFI";
 const char* password = "raspwifi"; 
 
 // Server details
-const char* host = "10.42.0.1";   
+const char* host = "10.42.0.229";   
 const uint16_t sPort = 6420;            
 const uint16_t rPort = 6421;
-WiFiClient sender;
-WiFiServer receiver(rPort);
+WiFiClient sock;
+//WiFiServer receiver(rPort);
 
 // ADC Pin
 const int adcPin = 34; 
@@ -41,10 +41,10 @@ void setup() {
   // Serial.println("10.42.0.1:6420");
   // Serial.println("Connection to port 6421 accepted from:");
   // Serial.println("10.42.0.1");
-  receiver.begin();
-  delay(10);
+  // receiver.begin();
+  // delay(10);
   
-  while (!sender.connect(host, sPort)) {
+  while (!sock.connect(host, sPort)) {
     delay(1000);
   }
 
@@ -87,8 +87,8 @@ void sendTask(void *pvParameters) {
       buff[i] = (adcValue>>4)&0xFF;
       delayMicroseconds(125);
     }
-    if(sender.connected()){
-      sender.write(buff, BUFF_SIZE);
+    if(sock.connected()){
+      sock.write(buff, BUFF_SIZE);
     }
     //dacWrite(25, (adcValue>>6)&0xFF);
     
@@ -96,21 +96,17 @@ void sendTask(void *pvParameters) {
 }
 
 void receiveTask(void *pvParameters) {
+  int16_t dacValue = 0;
+  uint8_t buff[BUFF_SIZE];
   while (true)
   {
-    WiFiClient client = receiver.available();
-    if (client){
-      uint8_t buffer[BUFF_SIZE];
-      while (client.connected()) {
-        if(client.available()){
-          client.readBytes(buffer, BUFF_SIZE); 
-        }
-        for (int i = 0; i < BUFF_SIZE; i++){
-          dacWrite(dacPin, buffer[i]);
-          delayMicroseconds(125);
-        }
+    if(sock.connected() && sock.available()){
+        sock.readBytes(buff, BUFF_SIZE); 
+      for (int i = 0; i < BUFF_SIZE; i++){
+        dacValue = buff[i];
+        dacWrite(dacPin, dacValue);
+        delayMicroseconds(125);
       }
-      client.stop();
     }
   }
 }

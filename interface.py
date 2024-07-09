@@ -5,8 +5,8 @@ import os
 import time
 import socket
 
-arpFile = "arp.txt"
-#arpFile = "/proc/net/arp"
+#arpFile = "arp.txt"
+arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 debug = True
 

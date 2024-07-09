@@ -1,65 +1,48 @@
-from threading import Thread
-import sys
 import socket
-import fcntl, os
+import threading
 
-class ServerManager:
-    __slots__ = ('__listen', '__address', '__walkies', '__walkie1', '__walkie2')
-    
-    def __init__(self) -> None:
-        self.__listen = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.__address = ('0.0.0.0', 6420)
-        self.__listen.bind(self.__address)
-        self.__listen.setblocking(False)
-        self.__listen.listen()
-        self.__walkies = dict()
-        self.__walkie1 = "10.42.0.132"
-        self.__walkie1 = "10.42.0.132"
-    
-    def run(self):
-        while True:
-            try:
-                (sock, address) = self.__listen.accept()
-                cm = ConnectionManager(sock, address)
-                
-                thread = Thread(target=cm.run, args=())
-                thread.run()
-                self.__walkies[address] = cm.get_queues()
-            except:
-                pass
+# Dictionary to store client connections
+clients = {}
+
+def handle_client(client_socket, client_address):
+    while True:
+        try:
+            # Receive data from the client
+            data = client_socket.recv(100)
+            if not data:
+                break
             
+            # Print received data and address
+            print(f"Received data from {client_address}: {data}")
             
-            if self.__walkie1 in self.__walkies and self.__walkie2 in self.__walkies:
-                self.__walkies[self.__walkie1][1].append(self.__walkies[self.__walkie2][0].pop(0))
-                self.__walkies[self.__walkie2][1].append(self.__walkies[self.__walkie1][0].pop(0))
-    
+            # Here you can implement the logic to route the data to other ESP32 devices
+            # For example, broadcast to all other clients
+            for addr, sock in clients.items():
+                if addr != client_address:
+                    sock.send(data)
+        except ConnectionResetError:
+            break
 
-class ConnectionManager:
-    __slots__ = ('__client', '__address', '__port', '__sender', '__queue_r', '__queue_s')
-    BUFFSIZE = 100
-    
-    def __init__(self, client: socket.socket, address: socket.AddressInfo) -> None:
-        self.__client = client
-        (self.__address, self.__port) = address
-        self.__sender = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.__sender.connect((self.__address, 6421))
-        self.__client.setblocking(False)
-        self.__queue_r = list()
-        self.__queue_s = list()
-        
-    def get_queues(self):
-        return (self.__queue_r, self.__queue_s)
-        
-    def run(self):
-        while True:
-            try:
-                self.__queue_r.append(self.__client.recv(self.BUFFSIZE))
-            except:
-                pass
-            try:
-                self.__sender.send(self.__queue_s.pop(0))
-            except:
-                pass
-        
+    # Remove the client from the dictionary and close the socket
+    del clients[client_address]
+    client_socket.close()
 
-ServerManager().run()
+def start_server(host, port):
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((host, port))
+    server.listen(5)
+    print(f"Server listening on {host}:{port}")
+
+    while True:
+        client_socket, client_address = server.accept()
+        print(f"Accepted connection from {client_address}")
+        clients[client_address] = client_socket
+
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
+        client_handler.start()
+
+if __name__ == "__main__":
+    HOST = '0.0.0.0'  # Listen on all available interfaces
+    PORT = 6420
+
+    start_server(HOST, PORT)
