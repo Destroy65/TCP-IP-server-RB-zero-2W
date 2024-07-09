@@ -20,7 +20,7 @@ def handle_client(client_socket, client_address):
             for addr, sock in clients.items():
                 if addr != client_address:
                     sock.send(data)
-        except ConnectionResetError:
+        except:
             break
 
     # Remove the client from the dictionary and close the socket

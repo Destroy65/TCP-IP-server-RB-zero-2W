@@ -8,9 +8,8 @@ const char* password = "raspwifi";
 // Server details
 const char* host = "10.42.0.1";   
 const uint16_t sPort = 6420;            
-const uint16_t rPort = 6421;
+
 WiFiClient sock;
-//WiFiServer receiver(rPort);
 
 // ADC Pin
 const int adcPin = 34; 
@@ -31,18 +30,6 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  
-  // Serial.println("");
-  // Serial.println("WiFi connected");
-  // Serial.println("IP address: ");
-  // Serial.println(WiFi.localIP());
-
-  // Serial.println("Connection established to:");
-  // Serial.println("10.42.0.1:6420");
-  // Serial.println("Connection to port 6421 accepted from:");
-  // Serial.println("10.42.0.1");
-  // receiver.begin();
-  // delay(10);
   
   while (!sock.connect(host, sPort)) {
     delay(1000);
@@ -90,8 +77,6 @@ void sendTask(void *pvParameters) {
     if(sock.connected()){
       sock.write(buff, BUFF_SIZE);
     }
-    //dacWrite(25, (adcValue>>6)&0xFF);
-    
   }
 }
 
