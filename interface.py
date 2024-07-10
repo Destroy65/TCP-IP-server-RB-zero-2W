@@ -7,8 +7,8 @@ import threading
 import coms
 
 
-#arpFile = "arp.txt"
-arpFile = "/proc/net/arp"
+arpFile = "arp.txt"
+#arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 debug = False
 
@@ -63,9 +63,6 @@ def printPrivList(frm):
 
 def updateDevices(frm, mode):
     devIP = dict()
-    mac = []
-    ip = []
-    name = []
     f = open(arpFile, "r")
 
     f.readline()
@@ -127,7 +124,7 @@ def privateWindow(tab2, root):
 
 if __name__ == "__main__":
     setupNetwork()
-    server_handler = threading.Thread(target=coms.handle_client, args=(coms.HOST, coms.PORT))
+    server_handler = threading.Thread(target=coms.start_server, args=(coms.HOST, coms.PORT))
 
     root = Tk()
     root.title("Comunication Control")
