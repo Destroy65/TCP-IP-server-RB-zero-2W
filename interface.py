@@ -10,47 +10,22 @@ import coms
 #arpFile = "arp.txt"
 arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
-debug = True
+debug = False
 
 devices = dict()
 mutes = dict()
 defeans = dict()
+privateCom = dict()
+privateMute = dict()
 
 def setupNetwork():
     os.system("sudo systemctl start NetworkManager")
     time.sleep(3)
     os.system("sudo nmcli device wifi hotspot ssid 'raspWIFI' password 'raspwifi'")
     
-
-def updateDevices(frm):
-    devIP = dict()
-    f = open(arpFile, "r")
-    f.readline()
-    for line in f:
-        ip = re.search("(\\b25[0-5]|\\b2[0-4][0-9]|\\b[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}", line)
-        mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
-        devIP[mac[0]] = ip[0]
-    f.close()
-
-    if(debug): print(devIP)
-
-    f = open(devNameFile, "r")
-    for line in f:
-        mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
-        if devIP.get(mac[0]):
-            name = re.search("\t(.+)$", line)
-            devices[devIP[mac[0]]] = name[0]
-    f.close()
-    if(debug): print(devices)
-
-    for mac in devIP:
-        if not devices.get(devIP[mac]):
-            devices[devIP[mac]] = "Unknown"
-    devIP.clear()
-
-    print(devices)
-
+def printBroadList(frm):
     count = 2
+
     for dev in devices:
         mutes[dev] = IntVar()
         defeans[dev] = IntVar()
@@ -61,15 +36,82 @@ def updateDevices(frm):
     
     return count
 
+def printPrivList(frm):
+    row = 2
+    col = 3
+
+    for dev in devices:
+        Label(frm, text=devices[dev]).grid(column=col, row=1)
+        col += 1
+
+    col = 3
+    for dev in devices:
+        privateMute[dev] = IntVar()
+        Label(frm, text=devices[dev]).grid(column=0, row=row, columnspan=2)
+        Checkbutton(frm, variable=privateMute[dev]).grid(column=2, row=row)
+        privateCom[dev] = dict()
+        
+        for tag in devices:
+            privateCom[dev][tag] = IntVar()
+            Checkbutton(frm, variable=privateCom[dev][tag]).grid(column=col, row=row)
+            col += 1
+
+        col = 3
+        row += 1
+    
+    return row
+
+def updateDevices(frm, mode):
+    devIP = dict()
+    mac = []
+    ip = []
+    name = []
+    f = open(arpFile, "r")
+
+    f.readline()
+    for line in f:
+        ip = re.search("(\\b25[0-5]|\\b2[0-4][0-9]|\\b[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}", line)
+        mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
+        devIP[mac[0]] = ip[0]
+    f.close()
+
+    if debug: print(devIP)
+
+    f = open(devNameFile, "r")
+    for line in f:
+        mac = re.search("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})", line)
+        if devIP.get(mac[0]):
+            name = re.search("\t(.+)$", line)
+            devices[devIP[mac[0]]] = name[0][1:]
+    f.close()
+
+    if debug: print(devices)
+
+    for mac in devIP:
+        if not devices.get(devIP[mac]):
+            devices[devIP[mac]] = "Unknown"
+    devIP.clear()
+
+    print(devices)
+
+    if mode == "BROAD":
+        return printBroadList(frm)
+    elif mode == "PRIV":
+        return printPrivList(frm)
+    
+    return 2
+    
+
 def bradcastWindow(tab1, root):
     frm = Frame(tab1, padding=20)
     frm.grid(column=0,row=0)
     
     Label(frm, text="Mute").grid(column=2, row=1)
     Label(frm, text="Defean").grid(column=3, row=1)
-    lastRow = updateDevices(frm)
 
-    Button(frm, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=lastRow+1, columnspan=2)
+    lastRow = updateDevices(frm, "BROAD")
+
+    Button(frm, text="Refresh", command=lambda:updateDevices(frm, "BROAD")).grid(column=0, row=lastRow+1, columnspan=2)
     Button(frm, text="Quit", command=root.destroy).grid(column=6, row=lastRow+1, columnspan=2)
 
 def privateWindow(tab2, root):
@@ -77,32 +119,11 @@ def privateWindow(tab2, root):
     frm.grid(column=0,row=0)
     
     Label(frm, text="Mute").grid(column=2, row=1)
-    Label(frm, text="Walkie-1").grid(column=3, row=1)
-    Label(frm, text="Walkie-2").grid(column=4, row=1)
-    Label(frm, text="Walkie-3").grid(column=5, row=1)
-
-    Label(frm, text="Walkie-1").grid(column=0, row=2)
-    Checkbutton(frm, variable=IntVar()).grid(column=2, row=2)
-    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=3, row=2)
-    Checkbutton(frm, variable=IntVar()).grid(column=4, row=2)
-    Checkbutton(frm, variable=IntVar()).grid(column=5, row=2)
-
-    Label(frm, text="Walkie-2").grid(column=0, row=3)
-    Checkbutton(frm, variable=IntVar()).grid(column=2, row=3)
-    Checkbutton(frm, variable=IntVar()).grid(column=3, row=3)
-    Checkbutton(frm, variable=0,state="disabled").grid(column=4, row=3)
-    Checkbutton(frm, variable=IntVar()).grid(column=5, row=3)
-
-    Label(frm, text="Walkie-3").grid(column=0, row=4)
-    Checkbutton(frm, variable=IntVar()).grid(column=2, row=4)
-    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=3, row=4)
-    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=4, row=4)
-    Checkbutton(frm, variable=IntVar(),state="disabled").grid(column=5, row=4)
-
     
+    lastRow = updateDevices(frm, "PRIV")
 
-    Button(frm, text="Refresh", command=lambda:updateDevices(frm)).grid(column=0, row=6, columnspan=2)
-    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=6, columnspan=2)
+    Button(frm, text="Refresh", command=lambda:updateDevices(frm, "PRIV")).grid(column=0, row=lastRow, columnspan=2)
+    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=lastRow, columnspan=2)
 
 if __name__ == "__main__":
     setupNetwork()
@@ -110,7 +131,7 @@ if __name__ == "__main__":
 
     root = Tk()
     root.title("Comunication Control")
-    root.minsize(600,500)
+    root.minsize(400,200)
     
     tab_control = Notebook(root)
     tab1 = Frame(tab_control)

@@ -1,9 +1,12 @@
+from multiprocessing import shared_memory
 import socket
 import threading
 
 HOST = '0.0.0.0'  # Listen on all available interfaces
 PORT = 6420
 clients = {}      # Dictionary to store client connections
+
+logData = False
 
 def handle_client(client_socket, client_address):
     while True:
@@ -14,10 +17,8 @@ def handle_client(client_socket, client_address):
                 break
             
             # Print received data and address
-            print(f"Received data from {client_address}: {data}")
+            if logData: print(f"Received data from {client_address}: {data}")
             
-            # Here you can implement the logic to route the data to other ESP32 devices
-            # For example, broadcast to all other clients
             for addr, sock in clients.items():
                 if addr != client_address:
                     sock.send(data)
