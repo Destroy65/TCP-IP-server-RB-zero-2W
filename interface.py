@@ -31,6 +31,15 @@ def muteDevices():
         elif mutes[val].get() == 1:
             if debug: print(f"Mute {val}")
             os.system(f"sudo iptables -A INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
+
+def defeanDevice():
+    for val in defeans:
+        if defeans[val].get() == 0:
+            if debug: print(f"Unmute {val}")
+            os.system(f"sudo iptables -D OUTPUT -o wlan0 -d {val} -p tcp --sport 6420 -j DROP")
+        elif defeans[val].get() == 1:
+            if debug: print(f"Mute {val}")
+            os.system(f"sudo iptables -A OUTPUT -o wlan0 -d {val} -p tcp --sport 6420 -j DROP")
     
 def printBroadList(frm):
     count = 2
@@ -149,5 +158,5 @@ if __name__ == "__main__":
 
     server_handler.start()
     root.mainloop()
-
+    os.system(f"sudo killall -9 python")
 
