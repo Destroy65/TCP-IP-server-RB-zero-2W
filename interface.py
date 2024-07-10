@@ -32,7 +32,7 @@ def muteDevices():
             if debug: print(f"Mute {val}")
             os.system(f"sudo iptables -A INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
 
-def defeanDevice():
+def defeanDevices():
     for val in defeans:
         if defeans[val].get() == 0:
             if debug: print(f"Unmute {val}")
@@ -49,7 +49,7 @@ def printBroadList(frm):
         defeans[dev] = IntVar()
         Label(frm, text=devices[dev]).grid(column=0, row=count, columnspan=2)
         Checkbutton(frm, variable=mutes[dev], command=lambda:muteDevices()).grid(column=2, row=count)
-        Checkbutton(frm, variable=defeans[dev]).grid(column=3, row=count)
+        Checkbutton(frm, variable=defeans[dev], command=lambda:defeanDevices()).grid(column=3, row=count)
         count += 1
     
     return count
@@ -124,8 +124,8 @@ def bradcastWindow(tab1, root):
 
     lastRow = updateDevices(frm, "BROAD")
 
-    Button(frm, text="Refresh", command=lambda:updateDevices(frm, "BROAD")).grid(column=0, row=lastRow+1, columnspan=2)
-    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=lastRow+1, columnspan=2)
+    Button(frm, text="Refresh", command=lambda:updateDevices(frm, "BROAD")).grid(column=0, row=lastRow+2, columnspan=2)
+    Button(frm, text="Quit", command=root.destroy).grid(column=6, row=lastRow+2, columnspan=2)
 
 def privateWindow(tab2, root):
     frm = Frame(tab2, padding=20)
