@@ -7,8 +7,8 @@ import threading
 import coms
 
 
-arpFile = "arp.txt"
-#arpFile = "/proc/net/arp"
+#arpFile = "arp.txt"
+arpFile = "/proc/net/arp"
 devNameFile = "devices.txt"
 debug = False
 
@@ -25,9 +25,11 @@ def setupNetwork():
 
 def muteDevices():
     for val in mutes:
-        if mutes[val] == 0:
+        if mutes[val].get() == 0:
+            if debug: print(f"Unmute {val}")
             os.system(f"sudo iptables -D INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
-        elif mutes[val] == 1:
+        elif mutes[val].get() == 1:
+            if debug: print(f"Mute {val}")
             os.system(f"sudo iptables -A INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
     
 def printBroadList(frm):
