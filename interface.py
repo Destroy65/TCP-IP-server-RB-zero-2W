@@ -22,6 +22,13 @@ def setupNetwork():
     os.system("sudo systemctl start NetworkManager")
     time.sleep(3)
     os.system("sudo nmcli device wifi hotspot ssid 'raspWIFI' password 'raspwifi'")
+
+def muteDevices():
+    for val in mutes:
+        if mutes[val] == 0:
+            os.system(f"sudo iptables -D INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
+        elif mutes[val] == 1:
+            os.system(f"sudo iptables -A INPUT -i wlan0 -s {val} -p tcp --dport 6420 -j DROP")
     
 def printBroadList(frm):
     count = 2
@@ -30,7 +37,7 @@ def printBroadList(frm):
         mutes[dev] = IntVar()
         defeans[dev] = IntVar()
         Label(frm, text=devices[dev]).grid(column=0, row=count, columnspan=2)
-        Checkbutton(frm, variable=mutes[dev]).grid(column=2, row=count)
+        Checkbutton(frm, variable=mutes[dev], command=lambda:muteDevices()).grid(column=2, row=count)
         Checkbutton(frm, variable=defeans[dev]).grid(column=3, row=count)
         count += 1
     
@@ -38,17 +45,15 @@ def printBroadList(frm):
 
 def printPrivList(frm):
     row = 2
-    col = 3
+    col = 2
 
     for dev in devices:
         Label(frm, text=devices[dev]).grid(column=col, row=1)
         col += 1
 
-    col = 3
+    col = 2
     for dev in devices:
-        privateMute[dev] = IntVar()
         Label(frm, text=devices[dev]).grid(column=0, row=row, columnspan=2)
-        Checkbutton(frm, variable=privateMute[dev]).grid(column=2, row=row)
         privateCom[dev] = dict()
         
         for tag in devices:
@@ -56,7 +61,7 @@ def printPrivList(frm):
             Checkbutton(frm, variable=privateCom[dev][tag]).grid(column=col, row=row)
             col += 1
 
-        col = 3
+        col = 2
         row += 1
     
     return row
@@ -114,8 +119,6 @@ def bradcastWindow(tab1, root):
 def privateWindow(tab2, root):
     frm = Frame(tab2, padding=20)
     frm.grid(column=0,row=0)
-    
-    Label(frm, text="Mute").grid(column=2, row=1)
     
     lastRow = updateDevices(frm, "PRIV")
 
